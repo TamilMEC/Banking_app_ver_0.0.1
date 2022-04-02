@@ -5,6 +5,7 @@ In this project, I have designed a consoled based bank app that simulates bankin
       Admin can accept the users account when user create new account.
       
     2)User Login
-      User can create new account.After creating new account admin needs to activate the user account until the user can't able to login his account.
-      oncer the admin activate the user account. User can able to view his account details,withdraw amount from his account,deposit amount to his account,transfer
-      amount to another account. 
+      User can create new account.After creating new account admin needs to activate the user account
+      until the user can't able to login his account.
+      oncer the admin activate the user account. User can able to view his account details,
+      withdraw amount from his account,deposit amount to his account,transfer amount to another account. 
