@@ -1,0 +1,15 @@
+2022-05-05 15:09:29.826 [main] INFO  Logic.Validator - ~~~~  Welcome to Tamil Bank  ~~~~
+2022-05-05 15:09:29.832 [main] INFO  Logic.Validator - For new Registeration - press 1
+2022-05-05 15:09:29.832 [main] INFO  Logic.Validator - For Login - press 2
+2022-05-05 15:09:29.832 [main] INFO  Logic.Validator - For Admin Login 3
+2022-05-05 15:09:29.836 [main] INFO  Assign.UserInput - Hello User :)
+2022-05-05 15:09:29.836 [main] INFO  Assign.UserInput - Enter your Mobile Number
+2022-05-05 15:09:31.410 [main] INFO  Assign.UserInput - Enter your Password
+2022-05-05 15:09:37.593 [main] INFO  Assign.UserInput - Logined successfully
+2022-05-05 15:09:37.594 [main] INFO  Logic.Validator - 1.View your account details
+2022-05-05 15:09:37.594 [main] INFO  Logic.Validator - 2.Withdraw
+2022-05-05 15:09:37.595 [main] INFO  Logic.Validator - 3.Deposite
+2022-05-05 15:09:37.595 [main] INFO  Logic.Validator - 4.Amount Transfer
+2022-05-05 15:09:37.596 [main] INFO  Logic.Validator - 5.Transaction details
+2022-05-05 15:09:37.596 [main] INFO  Logic.Validator - 6.Back to Welcome page
+2022-05-05 15:09:37.597 [main] INFO  Logic.Validator - 7.To Exit from app
