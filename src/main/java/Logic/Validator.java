@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 import Dao.Dao;
@@ -92,6 +93,17 @@ public class Validator {
 		return null;
 	}
 
+	public static int statusValidator(String num) throws Exception {
+		String query = "select status from Banking where status='inactive' and Mobile_Number='" + num + "' ";
+		ResultSet y = Dao.displaycall(query);
+		int rows = 0;
+	
+		if (y.next()) {
+			rows++;
+		}
+		return rows;
+	}
+
 	// Amount validation
 	public static int checkAmount(int Amount) throws Exception {
 		while (Amount == 0 || Amount < 500) {
@@ -112,37 +124,45 @@ public class Validator {
 	}
 
 	// Login validator
-	@SuppressWarnings("finally")
-	public static int loginValidation(String Mobile_Number, String Password) {
+	public static int loginValidation(String Mobile_Number, String Password) throws ClassNotFoundException, SQLException {
+	//	String query = null;
+//		StringBuilder querystr = new StringBuilder();
+//			querystr.append("select Mobile_Number,Password from Banking where Mobile_Number=('").append(Mobile_Number)
+//					.append("') and Password = ('").append(Password).append("')").append("and ").append("User='user'").append("').append("status=active");
+			String query = "select * from Banking where Mobile_Number='"+Mobile_Number+"' and PASSWORD = '"+Password+"' and status = 'active'";
+			//
+					//query = querystr.toString();
+			ResultSet rs = Dao.displaycall(query);
+			if(rs.next()) {
+				return 1; 
+			}
+			else 
+			{
+				return 0;
+	}
+			
+	}
+	
+	
+	
+	public static int adminLoginValidation(String Mobile_Number, String Password) throws ClassNotFoundException, SQLException {
 		String query = null;
-		int result = 0;
 		StringBuilder querystr = new StringBuilder();
-		try {
 			querystr.append("select Mobile_Number,Password from Banking where Mobile_Number=('").append(Mobile_Number)
-					.append("') and Password = ('").append(Password).append("')");
+					.append("') and Password = ('").append(Password).append("')").append("and ").append("User='Admin'");
 			query = querystr.toString();
 			ResultSet rs = Dao.displaycall(query);
-			while (rs.next()) {
-				result++; 
+			if(rs.next()) {
+				return 1; 
 			}
-		} catch (Exception e) {
-
-			e.printStackTrace();
-		} finally {
-			return result;
-		}
+			else 
+			{
+				return 0;
 	}
-
-	public static int statusValidator(String num) throws Exception {
-		String query = "select status from Banking where status='inactive' and Mobile_Number='" + num + "' ";
-		ResultSet y = Dao.displaycall(query);
-		int rows = 0;
-
-		if (y.next()) {
-			rows++;
-		}
-		return rows;
+			
 	}
+	
+	
 
 	// UserMenu Display
 	public static void userMenu(String mobileNumber) throws Exception {
@@ -151,8 +171,9 @@ public class Validator {
 		log.info("2.Withdraw");
 		log.info("3.Deposite");
 		log.info("4.Amount Transfer");
-		log.info("5.Back to Welcome page");
-		log.info("6.To Exit from app");
+		log.info("5.Transaction details");
+		log.info("6.Back to Welcome page");
+		log.info("7.To Exit from app");
 		int g = i.nextInt();
 		while (g > 5) {
 			log.info("Enter a valid option");
@@ -172,10 +193,13 @@ public class Validator {
 		if (g == 4) {
 			amountTransfer(mobileNumber);
 		}
-		if (g == 5) {
-			welcome();
+		if(g==5) {
+			transactiondetails(mobileNumber);
 		}
 		if (g == 6) {
+			welcome();
+		}
+		if (g == 7) {
 			log.info("Are you sure!");
 			log.info("Press 1 to Exit");
 			log.info("Press 2 to Back");
@@ -189,6 +213,27 @@ public class Validator {
 
 		}
 
+	}
+
+	private static void transactiondetails(String mobileNumber) throws Exception, SQLException {
+		String query = "select * from transactioncore where MobileNumber='"+mobileNumber+"'";
+		ResultSet rs = Dao.displaycall(query);
+		while(rs.next()) {
+		String UserAccountNumber = rs.getString("UserAccountNumber");
+		int Amount = rs.getInt("Amount");
+		String TYPE = rs.getString("TYPE");
+		String AccountNumber = rs.getString("AccountNumber");
+		String currentBalance = rs.getString("currentBalance");
+		String Datetime = rs.getString("Datetime"); 
+		System.out.println("Your account Number = "+UserAccountNumber+"");
+		System.out.println("Amount = "+Amount+"");
+		System.out.println("Transaction type = "+TYPE+"");
+		System.out.println("Account number = " +AccountNumber+"");
+		System.out.println("Your current balnce = " +currentBalance+"");
+		System.out.println("Transaction date and time = "+Datetime+"");
+		System.out.println();
+		}
+		
 	}
 
 	// Display Details to user
@@ -232,10 +277,12 @@ public class Validator {
 	private static void withdraw(String mobileNumber) throws Exception {
 		try {
 			int Amount = 0;
-			String query = "select Amount from Banking where Mobile_Number='" + mobileNumber + "'";
+			int accountnumber=0;
+			String query = "select * from Banking where Mobile_Number='" + mobileNumber + "'";
 			ResultSet details = Dao.displaycall(query);
-			if (details.next()) {
+			while (details.next()) {
 				Amount = details.getInt("Amount");
+				accountnumber=details.getInt("ACCOUNT_NUMBER");
 			}
 			log.info("Your available amount = " + Amount);
 			log.info("Enter the amount that you want to withdraw");
@@ -246,7 +293,7 @@ public class Validator {
 			} else {
 				log.info(withdrawAmount + " = Amount withdraw successfull ");
 				int totalamount = Amount - withdrawAmount;
-				updateAmount(totalamount, mobileNumber);
+				updateAmount(totalamount, mobileNumber,accountnumber,withdrawAmount);
 			}
 
 		} catch (Exception e) {
@@ -257,11 +304,19 @@ public class Validator {
 	}
 
 	// UpdateAmount in Sql
-	private static void updateAmount(int totalamount, String mobilenumber) {
+	private static void updateAmount(int totalamount, String mobilenumber,int accountnumber,int withdrawamount) {
+		LocalDateTime timestamp = LocalDateTime.now();
+		String time = timestamp.toString();
 		try {
 			String query = "update Banking set Amount='" + totalamount + "'  where Mobile_Number='" + mobilenumber
 					+ "'";
-			Dao.updateSql1(query);
+			int row=Dao.updateSql1(query);
+			System.out.println("transcation running");
+			if(row==1) {
+			
+				String query1="insert into transactioncore(MobileNumber,UserAccountNumber,Amount,TYPE,CurrentBalance,DATETIME) VALUES('"+mobilenumber+"','"+accountnumber+"','"+withdrawamount+"','Debited',"+totalamount+",'"+time+"')";
+				Dao.updateSql1(query1);
+			}
 			log.info("Your current balance = " + totalamount);
 
 			log.info("Enter 1 to go back to user menu");
@@ -285,13 +340,14 @@ public class Validator {
 		try {
 			log.info("Enter the amount that you want to deposite in your account");
 			int DepositAmount = i.nextInt();
-			String query = "select Amount from Banking where Mobile_Number='" + mobilenumber + "'";
+			String query = "select * from Banking where Mobile_Number='" + mobilenumber + "'";
 			ResultSet details = Dao.displaycall(query);
 			if (details.next()) {
 				int Amount = details.getInt("Amount");
 				int totalamount = Amount + DepositAmount;
+				int accountNumber = details.getInt("ACCOUNT_NUMBER");
 				log.info(DepositAmount + " = Amount Deposited successfull ");
-				updateDepositedAmount(mobilenumber, totalamount);
+				updateDepositedAmount(mobilenumber, totalamount,accountNumber,DepositAmount);
 			}
 		} catch (Exception e) {
 			e.getMessage();
@@ -299,12 +355,18 @@ public class Validator {
 		}
 	}
 
-	public static void updateDepositedAmount(String mobilenumber, int totalamount) {
-
+	public static void updateDepositedAmount(String mobilenumber, int totalamount,int accountNumber,int depositAmount) {
+		LocalDateTime timestamp = LocalDateTime.now();
+		String time = timestamp.toString();
 		try {
 			String queryamount = "update Banking set Amount=" + totalamount + " where Mobile_Number='" + mobilenumber
 					+ "'";
 			int a = Dao.updateSql1(queryamount);
+			if(a==1) {
+				
+				String query1="insert into transactioncore(MobileNumber,UserAccountNumber,Amount,TYPE,CurrentBalance,DATETIME) VALUES('"+mobilenumber+"','"+accountNumber+"','"+depositAmount+"','Credited',"+totalamount+",'"+time+"')";
+				Dao.updateSql1(query1);
+			}
 			if (a > 0) {
 				log.info("Your current balance = " + totalamount);
 			} else {
@@ -327,26 +389,33 @@ public class Validator {
 	}
 
 	public static void amountTransfer(String mobileNumber) throws Exception {
-
+		LocalDateTime timestamp = LocalDateTime.now();
+		String time = timestamp.toString();
 		int totalamount = 0;
 		int amountTransfer = 0;
 		int amounts = 0;
+		String mobileNumber2=null;
+		int accountnumbers=0;
 		System.out.println("Enter the account number");
 		int transferAccountno = i.nextInt();
-		String queryreceiveramo = "select Amount from Banking where ACCOUNT_NUMBER='" + transferAccountno + "'";
+		String queryreceiveramo = "select * from Banking where ACCOUNT_NUMBER='" + transferAccountno + "'";
 		ResultSet details = Dao.displaycall(queryreceiveramo);
 		if (details.next()) {
 			amounts = details.getInt("Amount");
+			mobileNumber2 = details.getString("Mobile_Number");
+			accountnumbers= details.getInt("ACCOUNT_NUMBER");
 			System.out.println("Enter the amount to transfer");
 			amountTransfer = i.nextInt();
 			totalamount = amounts + amountTransfer;
 
 		}
 		int senderamounts = 0;
-		String queryreceiveramount = "select Amount from Banking where Mobile_Number='" + mobileNumber + "'";
+		int accountNumber=0;
+		String queryreceiveramount = "select * from Banking where Mobile_Number='" + mobileNumber + "'";
 		ResultSet get = Dao.displaycall(queryreceiveramount);
 		if (get.next()) {
 			senderamounts = get.getInt("Amount");
+			accountNumber = get.getInt("ACCOUNT_NUMBER");
 		}
 		if (senderamounts < amountTransfer) {
 			System.out.println("Insufficient Balance");
@@ -357,17 +426,22 @@ public class Validator {
 		String querytransfer = "update Banking set Amount='" + totalamount + "' where ACCOUNT_NUMBER= '"
 				+ transferAccountno + "' ";
 		int a = Dao.updateSql1(querytransfer);
+		String query1="insert into transactioncore(MobileNumber,UserAccountNumber,Amount,TYPE,AccountNumber,CurrentBalance,DATETIME) VALUES('"+mobileNumber2+"','"+accountnumbers+"','"+amountTransfer+"','Received','"+accountNumber+"',"+totalamount+",'"+time+"')";
+		Dao.updateSql1(query1);
 		if (a == 1) {
-			updateSenderAccount(mobileNumber, amountTransfer);
+			updateSenderAccount(mobileNumber, amountTransfer,transferAccountno,amounts,accountNumber);
+				
 		} else {
 			System.out.println("Transfer failed");
 		}
 
 	}
 
-	public static void updateSenderAccount(String mblNumber, int amountTransfer) throws Exception {
+	public static void updateSenderAccount(String mblNumber, int amountTransfer ,int transferAccountno,int amounttoanotheuser ,int accountNumber) throws Exception {
+		LocalDateTime timestamp = LocalDateTime.now();
+		String time = timestamp.toString();
 		int amounts = 0;
-		String query = "select amount from Banking where Mobile_Number='" + mblNumber + "' ";
+		String query = "select * from Banking where Mobile_Number='" + mblNumber + "' ";
 		ResultSet details = Dao.displaycall(query);
 		if (details.next()) {
 			amounts = details.getInt("Amount");
@@ -378,6 +452,9 @@ public class Validator {
 		int a = Dao.updateSql1(querytransfer);
 		if (a == 1) {
 			System.out.println("success");
+
+			String query1="insert into transactioncore(MobileNumber,UserAccountNumber,Amount,TYPE,AccountNumber,CurrentBalance,DATETIME) VALUES('"+mblNumber+"','"+accountNumber+"','"+amountTransfer+"','Transfered','"+transferAccountno+"',"+updatedAmt+",'"+time+"')";
+			Dao.updateSql1(query1);
 		}
 	}
 
@@ -387,7 +464,7 @@ public class Validator {
 		String mobilenumber = i.next();
 		log.info("Enter password");
 		String password = i.next();
-		int row = loginValidation(mobilenumber, password);
+		int row = adminLoginValidation(mobilenumber, password);
 		if (row == 1) {
 			adminMenu();
 		} else {

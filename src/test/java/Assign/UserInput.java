@@ -26,7 +26,7 @@ public class UserInput {
 			log.info("Please fill the below details correctly");
 
 			// Getting Name-------------------------------
-			log.info("Enter your Name");
+			log.info("Enter your Name"); 
 			String Name = sc.next();
 			// Name validator
 			Name = Validator.checkname(Name);
@@ -115,15 +115,12 @@ public class UserInput {
 			// Login_Vallidation
 			loginvalid = Validator.loginValidation(Mobile_Number, Password);
 			useraccountstatus = Validator.statusValidator(Mobile_Number);
-			if (useraccountstatus == 1) {
-				log.info("Your account is not activated please try again later");
-				log.info("It takes 2 working days to activate your account");
-				log.info("");
-				log.info("Try with another Account");
-			} else if (loginvalid == 1) {
+
+			if(loginvalid==1) {
 				log.info("Logined successfully");
 				Validator.userMenu(Mobile_Number);
-
+			}else {
+				System.out.println("Invalid MobileNumber and Password");
 			}
 
 		}
